@@ -1,0 +1,705 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Full Text Search using MongoDB</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="This article shows how to build a real-world full text search using MongoDB Aggregation Framework">
+    <meta name="keywords" content="mongodb,full text search,aggregation framework">
+    <meta name="author" content="SteamLayers">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <base href="https://steamlayers.github.io">
+    <link rel="canonical" href="https://steamlayers.github.io/full-text-search-using-mongodb/">
+    <link rel="shortcut icon" href="https://steamlayers.github.io/favicon.ico" type="image/x-icon"/>
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@steamlayers" />
+    <meta name="twitter:title" content="Full Text Search using MongoDB" />
+    <meta name="twitter:description" content="This article shows how to build a real-world full text search using MongoDB Aggregation Framework" />
+    <meta name="twitter:image" content="https://steamlayers.github.io/images/logo.png" />
+
+        
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,300,500,600,700" rel="stylesheet" type="text/css">
+
+    
+    
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/slick.css">
+    <link rel="stylesheet" href="css/slick-theme.css">
+    <link rel="stylesheet" href="css/jquery.fancybox.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/share_buttons.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/tomorrow.min.css">
+
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+
+    <noscript><link rel="stylesheet" href="css/no-js.css"></noscript>
+
+
+</head>
+  <body class="theme-base-08" lang="en">
+    <div id="body-wrap">
+
+    <header id="header">
+
+  <nav id="navigation" class="navbar scrollspy">
+
+    <div class="container">
+
+      <ul class="nav navbar-nav">
+        <li><a href="https://steamlayers.github.io/" class="smooth-scroll">Home</a></li>
+        <li><a href="https://steamlayers.github.io/aggregation-stages-availability" class="smooth-scroll">Cheatsheet</a></li>
+        <li><a href="https://steamlayers.github.io/index.xml" class="smooth-scroll">RSS</a></li>
+        <li><a href="https://twitter.com/steamlayers" target="_blank" class="smooth-scroll">Follow</a></li>
+      </ul>
+
+      <ul class="nav nav-right navbar-nav">
+        <li class="menu-btn"><a href="https://steamlayers.github.io/course" target="blank">Learn More!</a></li>
+      </ul>
+
+    </div>
+
+  </nav>
+
+</header>
+
+
+
+    <div id="body" class="padding-top80">
+
+    
+    <div class="container">
+
+        <div class="post-heading-center">
+          <h2>Full Text Search using MongoDB</h2>
+          <p><time datetime="2017-04-08 21:02:17 &#43;0200 CEST" pubdate>Apr 08, 2017</time></p>
+        </div>
+
+        <div class="row padding-bottom20">
+            <div class="col-sm-6 col-md-7 col-lg-6 col-lg-offset-3 margin-bottom20">
+              <div class="col-txt20">
+                <p>If you build a web-service around content, then it is a matter of time when you need to introduce a search functionality.</p>
+
+<p>Depending on the shape of your data you may go the easiest way: search using a regular expression against some field (title, name, etc.). But what if you have more than one field? What if the data is spread across several collections? You would probably also want to have a &lsquo;search rank,&rsquo; i.e. to know how close the match is.</p>
+
+<p>This way the simple solution will not work anymore. Or it won&rsquo;t be simple.</p>
+
+<p></p>
+
+<p>&lsquo;Classic&rsquo; solution for this problem is to pick something like <a href="https://www.elastic.co">Elastic Search</a> or <a href="http://lucene.apache.org">Apache Lucene</a>. But if you are running on MongoDB, then there is no need to introduce another dependency into your stack.
+You can use the MongoDB Full-Text Search and MongoDB Aggregation Framework to build powerful search functionality.</p>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>I highly recommend to create a database locally, import sample data and follow my actions step by step.
+I crafted small data set. The data is normalized on purpose. I chose the &ldquo;worst&rdquo; case to show a real-world application.</p>
+
+<p>Just connect to some sandbox database locally (you can pick any other name):</p>
+
+<pre><code class="language-bash">mongo &quot;mongodb://localhost:27017/sandbox&quot;
+</code></pre>
+
+<p>Then create few books:</p>
+
+<pre><code class="language-javascript">db.books.insertMany([{
+  _id: &quot;lord_of_the_rings&quot;,
+  title: &quot;The Lord of the Rings&quot;,
+  country: &quot;United Kingdom&quot;,
+  language: &quot;english&quot;,
+  author_id: &quot;tolkien&quot;,
+  genres: &quot;fantasy, adventure&quot;
+},
+{
+  _id: &quot;hobbit&quot;,
+  title: &quot;The Hobbit&quot;,
+  country: &quot;United Kingdom&quot;,
+  language: &quot;english&quot;,
+  author_id: &quot;tolkien&quot;,
+  genres: &quot;juvenile fantasy, high fantasy&quot;
+},
+{
+  _id: &quot;harry_potter&quot;,
+  title: &quot;Harry Potter and the Philosopher's Stone&quot;,
+  country: &quot;United Kingdom&quot;,
+  language: &quot;english&quot;,
+  author_id: &quot;rowling&quot;,
+  genres: &quot;fantasy&quot;
+},
+{
+  _id: &quot;castle&quot;,
+  title: &quot;The Castle&quot;,
+  country: &quot;Czechoslovakia&quot;,
+  language: &quot;german&quot;,
+  author_id: &quot;kafka&quot;,
+  genres: &quot;philosophical fiction, dystopian novel, political fiction, comedy&quot;
+},
+{
+  _id: &quot;atlas_shrugged&quot;,
+  title: &quot;Atlas Shrugged&quot;,
+  country: &quot;United States&quot;,
+  language: &quot;English&quot;,
+  author_id: &quot;rand&quot;,
+  genres: &quot;Philosophical fiction, Science fiction, Mystery fiction, Romance novel, Utopia&quot;
+}])
+</code></pre>
+
+<p>And authors:</p>
+
+<pre><code class="language-javascript">db.authors.insertMany([{
+  _id: &quot;tolkien&quot;,
+  name: &quot;John Ronald Reuel Tolkien&quot;,
+  nationality: &quot;British&quot;,
+  genres: &quot;fantasy, high fantasy, translation, literary criticism&quot;
+},
+{
+  _id: &quot;rowling&quot;,
+  name: &quot;Joanne Rowling&quot;,
+  nationality: &quot;British&quot;,
+  genres: &quot;fantasy, drama, young adult fiction, tragicomedy, crime fiction&quot;
+},
+{
+  _id: &quot;kafka&quot;,
+  name: &quot;Franz Kafka&quot;,
+  nationality: &quot;Czech&quot;,
+  genres: &quot;philosophical novella, absurdist fiction&quot;
+},
+{
+  _id: &quot;rand&quot;,
+  name: &quot;Ayn Rand&quot;,
+  nationality: &quot;American&quot;,
+  genres: &quot;philosophical novella, absurdist fiction&quot;
+}])
+</code></pre>
+
+<p>Now we are ready to go further.</p>
+
+<h2 id="naive-search">Naive Search</h2>
+
+<p>Given this dataset, we already can look for books based on a dumb simple regular expression. The &lsquo;i&rsquo; at the end means that we want the search to be case-insensitive.</p>
+
+<pre><code class="language-javascript">var searchTerm = /hobbit/i;
+db.books.find({ $or : [
+  { title : searchTerm },
+  { genres : searchTerm }
+]})
+</code></pre>
+
+<p>The same works just perfect if we are interested in fantasy in general.</p>
+
+<pre><code class="language-javascript">var searchTerm = /fantasy/i;
+db.books.find({ $or : [
+  { title : searchTerm },
+  { genres : searchTerm }
+]})
+</code></pre>
+
+<p>However, this approach might be slow, especially if we add few more fields. Also, it probably makes sense to order results based on some criteria. E.g., matches by title go first, then go matches by genres.</p>
+
+<p>This way we would need to do few searches, for each field, and then combine results manually.</p>
+
+<p>Fortunately, there is a much better approach.</p>
+
+<h2 id="full-text-search">Full-Text Search</h2>
+
+<p>MongoDB supports <a href="https://docs.mongodb.com/v3.4/core/index-text/">text indexes</a> that enable Full Text Search.
+The great thing about text indexes: they provide <code>textScore</code>, which is controlled via <code>weights</code>.
+Here is an example:</p>
+
+<pre><code class="language-javascript">db.books.createIndex(
+{
+  title : &quot;text&quot;,
+  genres: &quot;text&quot;,
+  language: &quot;text&quot;
+},
+{
+  weights: {
+    title: 10,
+    genres: 5,
+    language: 5
+  },
+  name: &quot;TextIndex&quot;
+})
+</code></pre>
+
+<p>Please, notice the <code>weights</code> entry. Numbers there are pretty random, just to show that the <code>title</code> is more relevant than genres and languages.</p>
+
+<p>Now we can use powerful <code>$text</code> operator. The result will have some &lsquo;hidden&rsquo; metadata attached, from which we can get the <code>textScore</code>.</p>
+
+<pre><code class="language-javascript">var searchTerm = &quot;hobbit&quot;;
+db.books.find(
+{
+  $text : { $search : searchTerm }
+},
+{
+  searchRank : { $meta : &quot;textScore&quot; }
+})
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code class="language-json">{
+  &quot;_id&quot; : &quot;hobbit&quot;,
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;country&quot; : &quot;United Kingdom&quot;,
+  &quot;language&quot; : &quot;english&quot;,
+  &quot;author_id&quot; : &quot;tolkien&quot;,
+  &quot;genres&quot; : &quot;juvenile fantasy, high fantasy&quot;,
+  &quot;searchRank&quot; : 10
+}
+</code></pre>
+
+<p>We can sort results based on the <code>searchRank</code>:</p>
+
+<pre><code class="language-javascript">var searchTerm = &quot;hobbit&quot;;
+db.books.find(
+{
+  $text : { $search : searchTerm }
+},
+{
+  searchRank : { $meta : &quot;textScore&quot; }
+}).sort( { searchRank: { $meta: &quot;textScore&quot; } } )
+</code></pre>
+
+<p>We will get the following:</p>
+
+<pre><code class="language-json">{
+  &quot;_id&quot; : &quot;hobbit&quot;,
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;country&quot; : &quot;United Kingdom&quot;,
+  &quot;language&quot; : &quot;english&quot;,
+  &quot;author_id&quot; : &quot;tolkien&quot;,
+  &quot;genres&quot; : &quot;juvenile fantasy, high fantasy&quot;,
+  &quot;searchRank&quot; : 5.625
+}
+{
+  &quot;_id&quot; : &quot;harry_potter&quot;,
+  &quot;title&quot; : &quot;Harry Potter and the Philosopher's Stone&quot;,
+  &quot;country&quot; : &quot;United Kingdom&quot;,
+  &quot;language&quot; : &quot;english&quot;,
+  &quot;author_id&quot; : &quot;rowling&quot;,
+  &quot;genres&quot; : &quot;fantasy&quot;,
+  &quot;searchRank&quot; : 5
+}
+{
+  &quot;_id&quot; : &quot;lord_of_the_rings&quot;,
+  &quot;title&quot; : &quot;The Lord of the Rings&quot;,
+  &quot;country&quot; : &quot;United Kingdom&quot;,
+  &quot;language&quot; : &quot;english&quot;,
+  &quot;author_id&quot; : &quot;tolkien&quot;,
+  &quot;genres&quot; : &quot;fantasy, adventure&quot;,
+  &quot;searchRank&quot; : 3.75
+}
+</code></pre>
+
+<p>It looks awesome and definitely much better than naive regex-based search. But, there is another problem:</p>
+
+<pre><code class="language-javascript">var searchTerm = &quot;tolkien&quot;;
+db.books.find(
+{
+  $text : { $search : searchTerm }
+},
+{
+  searchRank : { $meta : &quot;textScore&quot; }
+})
+</code></pre>
+
+<p>No results. Let&rsquo;s fix that.</p>
+
+<h2 id="search-index">Search Index</h2>
+
+<p>Here the Aggregation Framework comes into play.</p>
+
+<p>To search through authors, we can craft another collection, which will serve us a very accurate search index.
+It will have the following form:</p>
+
+<pre><code class="language-json">{
+  &quot;book_id&quot;: &quot;hobbit&quot;,
+  &quot;title&quot;: &quot;The Hobbit&quot;,
+  &quot;genres&quot;: &quot;juvenile fantasy, high fantasy&quot;,
+  &quot;author_name&quot;: &quot;John Ronald Reuel Tolkien&quot;,
+  &quot;author_genres&quot;: &quot;fantasy, high fantasy, translation, literary criticism&quot;
+}
+</code></pre>
+
+<p>To create this collection, we will use aggregation pipeline. The algorithm is the following:</p>
+
+<ul>
+<li>take all books;</li>
+<li>extend each book with information about an author;</li>
+<li>change representation to rename or remove some fields;</li>
+<li>save results into another collection.</li>
+</ul>
+
+<p>It can be expressed using &lsquo;aggregation language&rsquo;:</p>
+
+<pre><code class="language-javascript">db.books.aggregate([
+  {
+    $lookup : {
+      from : &quot;authors&quot;,
+      localField: &quot;author_id&quot;,
+      foreignField: &quot;_id&quot;,
+      as : &quot;author&quot;
+    }
+  },
+  {
+    $unwind : &quot;$author&quot;
+  },
+  {
+    $project : {
+      book_id : &quot;$_id&quot;,
+      title : &quot;$title&quot;,
+      genres : &quot;$genres&quot;,
+      author_name : &quot;$author.name&quot;,
+      author_genres : &quot;$author.genres&quot;
+    }
+  },
+  {
+    $out : &quot;book_search_index&quot;
+  }
+])
+</code></pre>
+
+<p>Let&rsquo;s look at each stage in the pipeline.</p>
+
+<p><code>$lookup</code> joins two collections using <code>localField</code> and <code>foreignField</code> as a connection. <code>$lookup</code> results in an array. In our case, the array always contains one element.</p>
+
+<p>To get rid of the array we use <code>$unwind</code>, which creates a copy of a document for each entry.</p>
+
+<p>Then we use <code>$project</code> to shape the data.</p>
+
+<p>At the very end of the pipeline, we use <code>$out</code> operator who puts all results into another collection. <code>$out</code> overrides all existing records.</p>
+
+<p>Now, given the new collection, we can create a text index on it as we did initially with <code>books</code>.</p>
+
+<pre><code class="language-javascript">db.book_search_index.createIndex(
+{
+  title : &quot;text&quot;,
+  genres : &quot;text&quot;,
+  author_name : &quot;text&quot;,
+  author_genres : &quot;text&quot;
+},
+{
+  weights: {
+    title: 10,
+    genres: 6,
+    author_name: 4,
+    author_genres: 1,
+  },
+  name: &quot;TextIndex&quot;
+})
+</code></pre>
+
+<p>Again, the weights are random. Let&rsquo;s check out previous results.</p>
+
+<pre><code class="language-javascript">var searchTerm = &quot;hobbit&quot;;
+db.book_search_index.find(
+{
+  $text : { $search : searchTerm }
+},
+{
+  searchRank : { $meta : &quot;textScore&quot; }
+})
+</code></pre>
+
+<pre><code class="language-json">{
+  &quot;_id&quot; : &quot;hobbit&quot;,
+  &quot;book_id&quot; : &quot;hobbit&quot;,
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;genres&quot; : &quot;juvenile fantasy, high fantasy&quot;,
+  &quot;author_name&quot; : &quot;John Ronald Reuel Tolkien&quot;,
+  &quot;author_genres&quot; : &quot;fantasy, high fantasy, translation, literary criticism&quot;,
+  &quot;searchRank&quot; : 10
+}
+</code></pre>
+
+<p>One more:</p>
+
+<pre><code class="language-javascript">var searchTerm = &quot;tolkien&quot;;
+db.book_search_index.find(
+{
+  $text : { $search : searchTerm }
+},
+{
+  searchRank : { $meta : &quot;textScore&quot; }
+})
+</code></pre>
+
+<pre><code class="language-json">{
+  &quot;_id&quot; : &quot;lord_of_the_rings&quot;,
+  &quot;book_id&quot; : &quot;lord_of_the_rings&quot;,
+  &quot;title&quot; : &quot;The Lord of the Rings&quot;,
+  &quot;genres&quot; : &quot;fantasy, adventure&quot;,
+  &quot;author_name&quot; : &quot;John Ronald Reuel Tolkien&quot;,
+  &quot;author_genres&quot; : &quot;fantasy, high fantasy, translation, literary criticism&quot;,
+  &quot;searchRank&quot; : 2.5
+}
+{
+  &quot;_id&quot; : &quot;hobbit&quot;,
+  &quot;book_id&quot; : &quot;hobbit&quot;,
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;genres&quot; : &quot;juvenile fantasy, high fantasy&quot;,
+  &quot;author_name&quot; : &quot;John Ronald Reuel Tolkien&quot;,
+  &quot;author_genres&quot; : &quot;fantasy, high fantasy, translation, literary criticism&quot;,
+  &quot;searchRank&quot; : 2.5
+}
+</code></pre>
+
+<p>Awesome. Though, we are getting back documents from <code>book_search_index</code>, not from <code>books</code>.
+We can easily fix this using aggregation framework:</p>
+
+<pre><code class="language-javascript">var searchTerm = &quot;tolkien&quot;;
+db.book_search_index.aggregate([
+  {
+    $match : {
+      $text : { $search : searchTerm }
+    }
+  },
+  {
+    $addFields : {
+      searchRank : { $meta : &quot;textScore&quot; }
+    }
+  },
+  {
+    $lookup : {
+      from : &quot;books&quot;,
+      localField : &quot;book_id&quot;,
+      foreignField : &quot;_id&quot;,
+      as : &quot;book&quot;
+    }
+  },
+  {
+    $unwind : &quot;$book&quot;
+  },
+  {
+    $addFields : {
+      &quot;book.searchRank&quot; : &quot;$searchRank&quot;
+    }
+  },
+  {
+    $replaceRoot : {
+      newRoot : &quot;$book&quot;
+    }
+  }
+])
+</code></pre>
+
+<p>Result:</p>
+
+<pre><code class="language-json">{
+  &quot;_id&quot; : &quot;lord_of_the_rings&quot;,
+  &quot;title&quot; : &quot;The Lord of the Rings&quot;,
+  &quot;country&quot; : &quot;United Kingdom&quot;,
+  &quot;language&quot; : &quot;english&quot;,
+  &quot;author_id&quot; : &quot;tolkien&quot;,
+  &quot;genres&quot; : &quot;fantasy, adventure&quot;,
+  &quot;searchRank&quot; : 2.5
+}
+{
+  &quot;_id&quot; : &quot;hobbit&quot;,
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;country&quot; : &quot;United Kingdom&quot;,
+  &quot;language&quot; : &quot;english&quot;,
+  &quot;author_id&quot; : &quot;tolkien&quot;,
+  &quot;genres&quot; : &quot;juvenile fantasy, high fantasy&quot;,
+  &quot;searchRank&quot; : 2.5
+}
+</code></pre>
+
+<p>To make it work correctly, we would just need to keep <code>book_search_index</code> up to date. The update can be easily triggered via a Cron task. Or after each change in the database.</p>
+
+<h2 id="that-s-it">That&rsquo;s it</h2>
+
+<p>Full-Text Search is very common requirement in software development. The implementation itself is not straightforward, but nowadays one could easily integrate working solution in a couple of hours.</p>
+              </div>
+
+              <div>
+                
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Full%20Text%20Search%20using%20MongoDB&amp;url=https%3a%2f%2fsteamlayers.github.io%2ffull-text-search-using-mongodb%2f&amp;via=steamlayers" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.44 4.83c-.8.37-1.5.38-2.22.02.93-.56.98-.96 1.32-2.02-.88.52-1.86.9-2.9 1.1-.82-.88-2-1.43-3.3-1.43-2.5 0-4.55 2.04-4.55 4.54 0 .36.03.7.1 1.04-3.77-.2-7.12-2-9.36-4.75-.4.67-.6 1.45-.6 2.3 0 1.56.8 2.95 2 3.77-.74-.03-1.44-.23-2.05-.57v.06c0 2.2 1.56 4.03 3.64 4.44-.67.2-1.37.2-2.06.08.58 1.8 2.26 3.12 4.25 3.16C5.78 18.1 3.37 18.74 1 18.46c2 1.3 4.4 2.04 6.97 2.04 8.35 0 12.92-6.92 12.92-12.93 0-.2 0-.4-.02-.6.9-.63 1.96-1.22 2.56-2.14z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https://steamlayers.github.io/full-text-search-using-mongodb/" target="_blank" aria-label="" />
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=Full%20Text%20Search%20using%20MongoDB&amp;body=This%20article%20shows%20how%20to%20build%20a%20real-world%20full%20text%20search%20using%20MongoDB%20Aggregation%20Framework%0a%0ahttps%3a%2f%2fsteamlayers.github.io%2ffull-text-search-using-mongodb%2f" target="_self" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 4H2C.9 4 0 4.9 0 6v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7.25 14.43l-3.5 2c-.08.05-.17.07-.25.07-.17 0-.34-.1-.43-.25-.14-.24-.06-.55.18-.68l3.5-2c.24-.14.55-.06.68.18.14.24.06.55-.18.68zm4.75.07c-.1 0-.2-.03-.27-.08l-8.5-5.5c-.23-.15-.3-.46-.15-.7.15-.22.46-.3.7-.14L12 13.4l8.23-5.32c.23-.15.54-.08.7.15.14.23.07.54-.16.7l-8.5 5.5c-.08.04-.17.07-.27.07zm8.93 1.75c-.1.16-.26.25-.43.25-.08 0-.17-.02-.25-.07l-3.5-2c-.24-.13-.32-.44-.18-.68s.44-.32.68-.18l3.5 2c.24.13.32.44.18.68z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2fsteamlayers.github.io%2ffull-text-search-using-mongodb%2f&amp;title=Full%20Text%20Search%20using%20MongoDB" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M24 11.5c0-1.65-1.35-3-3-3-.96 0-1.86.48-2.42 1.24-1.64-1-3.75-1.64-6.07-1.72.08-1.1.4-3.05 1.52-3.7.72-.4 1.73-.24 3 .5C17.2 6.3 18.46 7.5 20 7.5c1.65 0 3-1.35 3-3s-1.35-3-3-3c-1.38 0-2.54.94-2.88 2.22-1.43-.72-2.64-.8-3.6-.25-1.64.94-1.95 3.47-2 4.55-2.33.08-4.45.7-6.1 1.72C4.86 8.98 3.96 8.5 3 8.5c-1.65 0-3 1.35-3 3 0 1.32.84 2.44 2.05 2.84-.03.22-.05.44-.05.66 0 3.86 4.5 7 10 7s10-3.14 10-7c0-.22-.02-.44-.05-.66 1.2-.4 2.05-1.54 2.05-2.84zM2.3 13.37C1.5 13.07 1 12.35 1 11.5c0-1.1.9-2 2-2 .64 0 1.22.32 1.6.82-1.1.85-1.92 1.9-2.3 3.05zm3.7.13c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9.8 4.8c-1.08.63-2.42.96-3.8.96-1.4 0-2.74-.34-3.8-.95-.24-.13-.32-.44-.2-.68.15-.24.46-.32.7-.18 1.83 1.06 4.76 1.06 6.6 0 .23-.13.53-.05.67.2.14.23.06.54-.18.67zm.2-2.8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm5.7-2.13c-.38-1.16-1.2-2.2-2.3-3.05.38-.5.97-.82 1.6-.82 1.1 0 2 .9 2 2 0 .84-.53 1.57-1.3 1.87z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fsteamlayers.github.io%2ffull-text-search-using-mongodb%2f&amp;t=Full%20Text%20Search%20using%20MongoDB" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><path fill-rule="evenodd" d="M60.94 82.314L17 0h20.08l25.85 52.093c.397.927.86 1.888 1.39 2.883.53.994.995 2.02 1.393 3.08.265.4.463.764.596 1.095.13.334.262.63.395.898.662 1.325 1.26 2.618 1.79 3.877.53 1.26.993 2.42 1.39 3.48 1.06-2.254 2.22-4.673 3.48-7.258 1.26-2.585 2.552-5.27 3.877-8.052L103.49 0h18.69L77.84 83.308v53.087h-16.9v-54.08z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+
+              </div>
+            </div>
+        </div>
+
+    </div>
+    
+
+</div>
+
+
+
+
+
+    <div id="bottom" class="bg-img">
+
+    
+    <div class="bg-overlay">
+
+        
+        <div class="container">
+
+
+<link href="//cdn-images.mailchimp.com/embedcode/horizontal-slim-10_7.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+input#mc-embedded-subscribe.button {
+  font-family:Roboto, Arial, sans-serif;
+  color:#FFF !important;
+  font-size:16px;
+  line-height:140%;
+  text-align:left;
+  font-weight:400;
+  white-space:nowrap;
+  background-color:#ff7469;
+  border:0px;
+  outline:none !important;
+  border-radius:3px;
+  -webkit-transition:color .2s ease, background-color .2s ease, background .2s ease;
+  transition:color .2s ease, background-color .2s ease, background .2s ease;
+}
+input#mc-embedded-subscribe.button:hover {
+  background-color:#f56357; 
+}
+</style>
+<div id="mc_embed_signup">
+<form action="//steamlayers.us15.list-manage.com/subscribe/post?u=8fe1b500654ca902aa3063a55&amp;id=cf49c86e25" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+  <h3 for="mce-EMAIL">Subscribe to our mailing list</h3>
+  <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Email address" required>
+    
+    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_8fe1b500654ca902aa3063a55_cf49c86e25" tabindex="-1" value=""></div>
+    <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+    </div>
+</form>
+</div>
+
+
+
+
+        </div>
+        
+
+    </div>
+    
+
+    <div class="bg-img-base"></div> 
+
+</div>
+
+
+
+
+    <footer id="footer">
+
+    
+    <div class="container">
+
+        <p class="copyright-txt">&copy; 2017 Copyrights by <a href="https://steamlayers.com">Steam Layers</a> - All rights reserved.</p>
+
+        
+        
+        
+        
+        
+
+    </div>
+    
+
+</footer>
+
+
+
+  </div>
+
+  <script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="js/jquery-migrate-1.2.1.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/jquery.easing.min.js"></script>
+<script type="text/javascript" src="js/smoothscroll.js"></script>
+<script type="text/javascript" src="js/response.min.js"></script>
+<script type="text/javascript" src="js/jquery.placeholder.min.js"></script>
+<script type="text/javascript" src="js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="js/waypoints.min.js"></script>
+<script type="text/javascript" src="js/slick.min.js"></script>
+<script type="text/javascript" src="js/jquery.fancybox.pack.js"></script>
+<script type="text/javascript" src="js/jquery.fancybox-media.js"></script>
+<script type="text/javascript" src="js/jquery.counterup.min.js"></script>
+<script type="text/javascript" src="js/script.js"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-93816802-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+
+
+
+</body>
+</html>
+

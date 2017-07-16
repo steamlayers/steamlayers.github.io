@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Full Text Search on Steam Layers: Web Development, MongoDB, Aggregation Framework</title>
+    <link>https://steamlayers.github.io/tags/full-text-search/</link>
+    <description>Recent content in Full Text Search on Steam Layers: Web Development, MongoDB, Aggregation Framework</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 08 Apr 2017 21:02:17 +0200</lastBuildDate>
+    
+	<atom:link href="https://steamlayers.github.io/tags/full-text-search/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Full Text Search using MongoDB</title>
+      <link>https://steamlayers.github.io/full-text-search-using-mongodb/</link>
+      <pubDate>Sat, 08 Apr 2017 21:02:17 +0200</pubDate>
+      
+      <guid>https://steamlayers.github.io/full-text-search-using-mongodb/</guid>
+      <description>&lt;p&gt;If you build a web-service around content, then it is a matter of time when you need to introduce a search functionality.&lt;/p&gt;
+
+&lt;p&gt;Depending on the shape of your data you may go the easiest way: search using a regular expression against some field (title, name, etc.). But what if you have more than one field? What if the data is spread across several collections? You would probably also want to have a &amp;lsquo;search rank,&amp;rsquo; i.e. to know how close the match is.&lt;/p&gt;
+
+&lt;p&gt;This way the simple solution will not work anymore. Or it won&amp;rsquo;t be simple.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

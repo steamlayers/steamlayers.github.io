@@ -1,0 +1,42 @@
+.bg-color, .btn-custom, input[type="button"], input[type="submit"], input[type="reset"], button, .carousel-slider .slick-prev:hover, .carousel-slider .slick-next:hover, #navigation_mobile .nav-menu-links, #header .header-content .header-form .header-form-heading, #sub-header, .bg-color .affa-tbl-prc .btn-custom, .bg-color .affa-tbl-prc .btn-custom.btn-pink, .affa-tbl-prc .tbl-prc-col .tbl-prc-badge, .affa-tbl-prc .tbl-prc-col .tbl-prc-heading .tbl-prc-price, .affa-map .btn-collapse { background-color:#fb53c2; }
+
+a, a:visited, .list-icon ul li .fa, .post-heading-left h2 strong, #navigation_affix .nav > li > a:hover, #header .header-content .header-form .header-form-body .txt-desc a:hover, .affa-feature-icon .fa, .affa-feature-icon-left .fa, .affa-feature-icon-right .fa, #footer .copyright-txt a:hover { color:#fb53c2; }
+
+a:hover { color:#404040; } /* Don't change this value */
+
+.bg-color a:hover, #navigation_mobile ul li a { color:#fae4f3; }
+
+input[type="color"]:focus, input[type="date"]:focus, input[type="datetime"]:focus, input[type="datetime-local"]:focus, input[type="email"]:focus, input[type="month"]:focus, input[type="number"]:focus, input[type="password"]:focus, .ie input[type="range"]:focus, .ie9 input[type="range"]:focus, input[type="search"]:focus, input[type="tel"]:focus, input[type="text"]:focus, input[type="time"]:focus, input[type="url"]:focus, input[type="week"]:focus, select:focus, textarea:focus { border-color:#fb53c2; }
+
+.bg-color .btn-custom, .bg-color input[type="button"], .bg-color input[type="submit"], .bg-color input[type="reset"], .bg-color button {
+	color:#404040 !important;
+	background-color:#FFF;
+}
+
+.bg-color .btn-custom.btn-pink, .bg-color input[type="button"].btn-pink, .bg-color input[type="submit"].btn-pink, .bg-color input[type="reset"].btn-pink, .bg-color button.btn-pink { background-color:#FFF; }
+
+.btn-custom:hover, input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover, button:hover, #navigation_mobile .nav-menu-button, .bg-dark .btn-custom:hover, .bg-img .btn-custom:hover, .affa-map .btn-collapse:hover { background-color:#e741af; }
+
+.bg-color .btn-custom:hover, .bg-color input[type="button"]:hover, .bg-color input[type="submit"]:hover, .bg-color input[type="reset"]:hover, .bg-color button:hover, .bg-color .btn-custom.btn-pink:hover, .bg-color input[type="button"].btn-pink:hover, .bg-color input[type="submit"].btn-pink:hover, .bg-color input[type="reset"].btn-pink:hover, .bg-color button.btn-pink:hover { background-color:#fae4f3; }
+
+.carousel-slider .slick-dots li button:hover, .carousel-slider .slick-dots li.slick-active button { background:#fb53c2; }
+
+#header .nav > li.menu-btn > a, #navigation_affix .nav > li.menu-btn > a { background:#fb53c2 !important; }
+#header .nav > li.menu-btn > a:hover, #navigation_affix .nav > li.menu-btn > a:hover, #header .nav > li.menu-btn.active > a, #navigation_affix .nav > li.menu-btn.active > a { background:#e741af !important; }
+#navigation_affix .nav > li.active > a {
+	color:#fb53c2;
+	border-top-color:#fb53c2;
+}
+#navigation_mobile .nav-menu-button button.nav-menu-toggle { color:#fae4f3 !important; }
+
+.affa-map .map-overlay { background-color:rgba(251,83,194,.8); }
+.ie .affa-map .map-overlay { background-image:url(ie-bg-map-overlay.png); }
+
+@media (max-width: 767px) {
+	
+	#sub-header {
+		color:#a9a9a9;
+		background-color:#f6f8f9;
+	}
+	
+}
