@@ -3,57 +3,57 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://steamlayers.github.io/aggregation-stages-availability/</loc>
+    <loc>https://steamlayers.com/aggregation-stages-availability/</loc>
     <lastmod>2017-05-18T22:54:29+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://steamlayers.github.io/course/</loc>
+    <loc>https://steamlayers.com/course/</loc>
     <lastmod>2017-05-05T22:54:29+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://steamlayers.github.io/full-text-search-using-mongodb/</loc>
+    <loc>https://steamlayers.com/full-text-search-using-mongodb/</loc>
     <lastmod>2017-04-08T21:02:17+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://steamlayers.github.io/tags/aggregation-framework/</loc>
-    <lastmod>2017-04-08T21:02:17+02:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://steamlayers.github.io/categories/</loc>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://steamlayers.github.io/tags/full-text-search/</loc>
+    <loc>https://steamlayers.com/tags/aggregation-framework/</loc>
     <lastmod>2017-04-08T21:02:17+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://steamlayers.github.io/tags/mongodb/</loc>
+    <loc>https://steamlayers.com/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://steamlayers.com/tags/full-text-search/</loc>
     <lastmod>2017-04-08T21:02:17+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://steamlayers.github.io/posts/</loc>
+    <loc>https://steamlayers.com/tags/mongodb/</loc>
     <lastmod>2017-04-08T21:02:17+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://steamlayers.github.io/</loc>
+    <loc>https://steamlayers.com/posts/</loc>
+    <lastmod>2017-04-08T21:02:17+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://steamlayers.com/</loc>
     <lastmod>2017-05-18T22:54:29+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://steamlayers.github.io/tags/</loc>
+    <loc>https://steamlayers.com/tags/</loc>
     <lastmod>2017-04-08T21:02:17+02:00</lastmod>
     <priority>0</priority>
   </url>

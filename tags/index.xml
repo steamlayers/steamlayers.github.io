@@ -2,39 +2,39 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Steam Layers: Web Development, MongoDB, Aggregation Framework</title>
-    <link>https://steamlayers.github.io/tags/</link>
+    <link>https://steamlayers.com/tags/</link>
     <description>Recent content in Tags on Steam Layers: Web Development, MongoDB, Aggregation Framework</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 08 Apr 2017 21:02:17 +0200</lastBuildDate>
     
-	<atom:link href="https://steamlayers.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://steamlayers.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Aggregation Framework</title>
-      <link>https://steamlayers.github.io/tags/aggregation-framework/</link>
+      <link>https://steamlayers.com/tags/aggregation-framework/</link>
       <pubDate>Sat, 08 Apr 2017 21:02:17 +0200</pubDate>
       
-      <guid>https://steamlayers.github.io/tags/aggregation-framework/</guid>
+      <guid>https://steamlayers.com/tags/aggregation-framework/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Full Text Search</title>
-      <link>https://steamlayers.github.io/tags/full-text-search/</link>
+      <link>https://steamlayers.com/tags/full-text-search/</link>
       <pubDate>Sat, 08 Apr 2017 21:02:17 +0200</pubDate>
       
-      <guid>https://steamlayers.github.io/tags/full-text-search/</guid>
+      <guid>https://steamlayers.com/tags/full-text-search/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Mongodb</title>
-      <link>https://steamlayers.github.io/tags/mongodb/</link>
+      <link>https://steamlayers.com/tags/mongodb/</link>
       <pubDate>Sat, 08 Apr 2017 21:02:17 +0200</pubDate>
       
-      <guid>https://steamlayers.github.io/tags/mongodb/</guid>
+      <guid>https://steamlayers.com/tags/mongodb/</guid>
       <description></description>
     </item>
     
