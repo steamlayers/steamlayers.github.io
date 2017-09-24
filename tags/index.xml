@@ -6,7 +6,7 @@
     <description>Recent content in Tags on Steam Layers: Web Development, MongoDB, Aggregation Framework</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 08 Apr 2017 21:02:17 +0200</lastBuildDate>
+    <lastBuildDate>Sun, 24 Sep 2017 15:00:00 +0100</lastBuildDate>
     
 	<atom:link href="https://steamlayers.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
@@ -14,9 +14,18 @@
     <item>
       <title>Aggregation Framework</title>
       <link>https://steamlayers.com/tags/aggregation-framework/</link>
-      <pubDate>Sat, 08 Apr 2017 21:02:17 +0200</pubDate>
+      <pubDate>Sun, 24 Sep 2017 15:00:00 +0100</pubDate>
       
       <guid>https://steamlayers.com/tags/aggregation-framework/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Entity Systems</title>
+      <link>https://steamlayers.com/tags/entity-systems/</link>
+      <pubDate>Sun, 24 Sep 2017 15:00:00 +0100</pubDate>
+      
+      <guid>https://steamlayers.com/tags/entity-systems/</guid>
       <description></description>
     </item>
     
@@ -32,7 +41,7 @@
     <item>
       <title>Mongodb</title>
       <link>https://steamlayers.com/tags/mongodb/</link>
-      <pubDate>Sat, 08 Apr 2017 21:02:17 +0200</pubDate>
+      <pubDate>Sun, 24 Sep 2017 15:00:00 +0100</pubDate>
       
       <guid>https://steamlayers.com/tags/mongodb/</guid>
       <description></description>

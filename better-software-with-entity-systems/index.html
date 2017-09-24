@@ -1,0 +1,551 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Better Software with Entity Systems</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Using Entity Systems for better system design and better software modeling">
+    <meta name="keywords" content="mongodb,entity systems,aggregation framework">
+    <meta name="author" content="SteamLayers">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <base href="https://steamlayers.com">
+    <link rel="canonical" href="https://steamlayers.com/better-software-with-entity-systems/">
+    <link rel="shortcut icon" href="https://steamlayers.com/favicon.ico" type="image/x-icon"/>
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@steamlayers" />
+    <meta name="twitter:title" content="Better Software with Entity Systems" />
+    <meta name="twitter:description" content="Using Entity Systems for better system design and better software modeling" />
+    <meta name="twitter:image" content="https://steamlayers.com/images/logo.png" />
+
+        
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,300,500,600,700" rel="stylesheet" type="text/css">
+
+    
+    
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/slick.css">
+    <link rel="stylesheet" href="css/slick-theme.css">
+    <link rel="stylesheet" href="css/jquery.fancybox.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/share_buttons.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/tomorrow.min.css">
+
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+
+    <noscript><link rel="stylesheet" href="css/no-js.css"></noscript>
+
+
+</head>
+  <body class="theme-base-08" lang="en">
+    <div id="body-wrap">
+
+    <header id="header">
+
+  <nav id="navigation" class="navbar scrollspy">
+
+    <div class="container">
+
+      <ul class="nav navbar-nav">
+        <li><a href="https://steamlayers.com/" class="smooth-scroll">Home</a></li>
+        <li><a href="https://steamlayers.com/aggregation-stages-availability" class="smooth-scroll">Cheatsheet</a></li>
+        <li><a href="https://steamlayers.com/index.xml" class="smooth-scroll">RSS</a></li>
+        <li><a href="https://twitter.com/steamlayers" target="_blank" class="smooth-scroll">Follow</a></li>
+      </ul>
+
+      <ul class="nav nav-right navbar-nav">
+        <li class="menu-btn"><a href="https://steamlayers.com/course" target="blank">Learn More!</a></li>
+      </ul>
+
+    </div>
+
+  </nav>
+
+</header>
+
+
+
+    <div id="body" class="padding-top80">
+
+    
+    <div class="container">
+
+        <div class="post-heading-center">
+          <h2>Better Software with Entity Systems</h2>
+          <p><time datetime="2017-09-24 15:00:00 &#43;0100 &#43;0100" pubdate>Sep 24, 2017</time></p>
+        </div>
+
+        <div class="row padding-bottom20">
+            <div class="col-sm-6 col-md-7 col-lg-6 col-lg-offset-3 margin-bottom20">
+              <div class="col-txt20">
+                <p>In today’s post, I want to introduce you a concept called <a href="https://en.wikipedia.org/wiki/Entity–component–system">Entity-component System</a> and to show how to use it for web development.
+The idea is not new. In fact, it is widely used in game development. But I have never heard about it when talking about backend development and data modeling.</p>
+
+<p></p>
+
+<h3 id="the-problem">The Problem</h3>
+
+<p>I suggest we start with a very typical feature: featured content.
+Let’s say we have a list of books:</p>
+
+<pre><code class="language-json">{
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;
+},
+{
+  &quot;title&quot; : &quot;Lord of the Rings&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;
+}
+</code></pre>
+
+<p>We want to mark some of them to be rendered in the &ldquo;Featured Books&rdquo; section. Easy:</p>
+
+<pre><code class="language-json">{
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;,
+  &quot;featured&quot; : true
+},
+{
+  &quot;title&quot; : &quot;Lord of the Rings&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;,
+  &quot;featured&quot; : false
+}
+</code></pre>
+
+<p>Then we realize that we want to specify the order in which they appear:</p>
+
+<pre><code class="language-json">{
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;,
+  &quot;featured&quot; : true,
+  &quot;featuredOrder&quot; : 1
+},
+{
+  &quot;title&quot; : &quot;Lord of the Rings&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;,
+  &quot;featured&quot; : false,
+  &quot;featuredOrder&quot; : 0
+}
+</code></pre>
+
+<p>Looks good, but… We also want to have a particular order for our mobile client, but the order is different from the one we have on the website.
+We can add another property:</p>
+
+<pre><code class="language-json">{
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;,
+  &quot;featured&quot; : true,
+  &quot;featuredOrder&quot; : 1,
+  &quot;featuredOrderMobile&quot; : 2
+},
+{
+  &quot;title&quot; : &quot;Lord of the Rings&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;,
+  &quot;featured&quot; : false,
+  &quot;featuredOrder&quot; : 0,
+  &quot;featuredOrderMobile&quot; : 0
+}
+</code></pre>
+
+<p>You can imagine that such a list of features can grow further until the sun goes out.
+It has at least two disadvantages:</p>
+
+<ul>
+<li>there is no explicit schema (some objects do not need all those featured* properties)</li>
+<li>given that we store last modification date (e.g. <code>updatedAt</code>): each time we change the order of a book, it is marked as changed, even though the essence of the record (title, author, description, etc.) is still the same. Technically the book has changed, but logically it is not.</li>
+</ul>
+
+<p>Let’s see if we can fix this.</p>
+
+<h3 id="entity-component-systems">Entity-Component Systems</h3>
+
+<p>There are many great explanations on the Internet, so I will not dive too deep.
+But here is a concise example: let’s say you build a game and you need to model things like swords and axes and bows and whatnot.
+For the sake of simplicity let’s consider the weapon to have a few properties:</p>
+
+<pre><code class="language-java">interface Weapon {
+  string name;
+  double damage;
+  double weight;
+}
+</code></pre>
+
+<p>As in any game you could sell and buy weapons, so we need to add a price:</p>
+
+<pre><code class="language-java">interface Weapon {
+  string name;
+  double damage;
+  double weight;
+
+  double price;
+}
+</code></pre>
+
+<p>However, there might be weapons that can never be sold because they are part of the storyline. It is easy to fix:</p>
+
+<pre><code class="language-java">interface Weapon {
+  string name;
+  double damage;
+  double weight;
+
+  double price;
+  bool canBeSold();
+}
+</code></pre>
+
+<p>There can be many more properties such as magical effects (one, or none, or many), or condition (broken, charged, enchanted), or distance (bows, magic weapon), or anything else you can imagine. It is evident that the classical OOP approach would not work very well here: classes will become bloated very fast, they will contain lots of useless properties.</p>
+
+<p>One of the possible solutions is an Entity-Component Systems approach: an entity is an entity, simple. The component is an aspect of an object (can be sold? has magical effects?). Systems: some aspect of the world, that handles specific components of an entity.
+Using entities and components, we can create some weapon:</p>
+
+<pre><code class="language-java">Entity MagicalSword() {
+  Entity entity;
+  entity.addComponent(PriceComponent(20));
+  entity.addComponent(MagicalEffects.fireballComponent(10));
+  entity.addComponent(Weapons.swordComponent(&quot;Fireblade&quot;, 15, 10));
+  return entity;
+}
+
+Entity QuestAxe() {
+  Entity entity;
+  entity.addComponent(MagicalEffects.lightning(10, 4));
+  entity.addComponent(Weapons.axeComponent(&quot;Thunderstorm&quot;));
+  return entity;
+}
+</code></pre>
+
+<p>Then, those elements can be used by a system (e.g. <code>SellerDialogueRenderer</code>):</p>
+
+<pre><code class="language-java">class SellerDialogueRenderer {
+  void renderItems(Inventory inventory) {
+    for (entity in inventory.items()) {
+      if (entity.hasComponent(PriceComponent)) {
+        renderEntity(entity);
+      }
+    }
+  }
+
+  void renderEntity(Entity entity) {
+    some_basic_entity_rendering(entity);
+    if (entity.hasComponent(MagicComponent)) {
+      render_magic_effects(entity);
+    }
+  }
+}
+</code></pre>
+
+<p>The example might not be the most correct one, but I hope it illustrates the idea of splitting the entity and its aspects.
+Let’s see how it is applicable for web development.</p>
+
+<h3 id="data-modelling-using-ecs">Data Modelling using ECS</h3>
+
+<p>Fortunately, ECS, or its concepts, applicable not only to games.
+Let’s look how we can implement initial task by separating data and its aspects:</p>
+
+<pre><code class="language-json">// Books Collection:
+{
+  &quot;_id&quot; : &quot;the_hobbit&quot;,
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;
+},
+{
+  &quot;_id&quot; : &quot;lord_of_the_rings&quot;,
+  &quot;title&quot; : &quot;Lord of the Rings&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;
+},
+{
+  _id: &quot;harry_potter&quot;,
+  title: &quot;Harry Potter and the Philosopher's Stone&quot;,
+  author: &quot;Rowling&quot;,
+}
+</code></pre>
+
+<p>Instead of extending existing records we can create a separate collection:</p>
+
+<pre><code class="language-json">// FeaturedBooks:
+{
+  &quot;_id&quot; : &quot;whateverhere&quot;,
+  &quot;book_id&quot; : &quot;the_hobbit&quot;,
+  &quot;order&quot; : 2
+},
+{
+  &quot;_id&quot; : &quot;another_id&quot;,
+  &quot;book_id&quot; : &quot;lord_of_the_rings&quot;,
+  &quot;order&quot; : 1
+}
+</code></pre>
+
+<p>The same for the mobile clients:</p>
+
+<pre><code class="language-json">// FeaturedMobileBooks:
+{
+  &quot;_id&quot; : &quot;whateverhere&quot;,
+  &quot;book_id&quot; : &quot;the_hobbit&quot;,
+  &quot;order&quot; : 2
+}
+</code></pre>
+
+<p>Managing complexity this way is much easier. We can do whatever changes we want without affecting the real data: add more properties (via new collections), remove unneeded properties (by dropping a collection). If we change the order now, then it doesn’t affect the book itself.</p>
+
+<p>However, it comes with a little disadvantage: fetching data is a bit less trivial now. Fortunately, we can use MongoDB <a href="https://docs.mongodb.com/manual/aggregation/">Aggregation Framework</a> for this task.</p>
+
+<h3 id="fetching-data">Fetching data</h3>
+
+<p>To prepare the data for a client we need to retrieve all <code>FeaturedBooks</code>, then for each featured book fetch the corresponding book (via <code>book_id</code>), then order results based on the <code>order</code> field, and then drop all unnecessary data.
+Here is the required pipeline:</p>
+
+<pre><code class="language-javascript">db.FeaturedBooks.aggregate([
+  { $lookup : {
+    from : 'books',
+    localField : 'book_id',
+    foreignField : '_id',
+    as : 'book'
+  } },
+  { $unwind : '$book' },
+  { $sort : { order : 1 } },
+  { $replaceRoot : { newRoot : '$book' } }
+])
+</code></pre>
+
+<p>The command will give us the following result:</p>
+
+<pre><code class="language-json">{
+  &quot;_id&quot; : &quot;lord_of_the_rings&quot;,
+  &quot;title&quot; : &quot;Lord of the Rings&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;
+},
+{
+  &quot;_id&quot; : &quot;the_hobbit&quot;,
+  &quot;title&quot; : &quot;The Hobbit&quot;,
+  &quot;author&quot; : &quot;Tolkien&quot;
+}
+</code></pre>
+
+<p>Let&rsquo;s look at each stage.</p>
+
+<p><a href="https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/"><code>$lookup</code></a> will find all the books which <code>_id</code> equals to the <code>book_id</code> from the
+<code>FeaturedBooks</code>. It will put results into a field names <code>book</code>, as we requested.
+The <code>book</code> field holds an array since there could be more than one match.</p>
+
+<p>In our case, the <code>book</code> array has only one object inside. We can safely <a href="https://docs.mongodb.com/manual/reference/operator/aggregation/unwind/"><code>$unwind</code></a> it to inline the book.</p>
+
+<p><a href="https://docs.mongodb.com/manual/reference/operator/aggregation/sort/"><code>$sort</code></a> is straightforward. We sort objects based on a value of <code>order</code> field.
+<code>1</code> means sort in ascending order. To flip the order, you can use <code>-1</code>.</p>
+
+<p>At this moment our records have the following form:</p>
+
+<pre><code class="language-json">{
+  &quot;_id&quot; : &quot;whateverhere&quot;,
+  &quot;book_id&quot; : &quot;the_hobbit&quot;,
+  &quot;order&quot; : 2,
+  &quot;book&quot; : {
+    &quot;_id&quot; : &quot;the_hobbit&quot;,
+    &quot;title&quot; : &quot;The Hobbit&quot;,
+    &quot;author&quot; : &quot;Tolkien&quot;
+  }
+}
+</code></pre>
+
+<p>We need to replace the whole thing with the nested <code>book</code> object. <a href="https://docs.mongodb.com/manual/reference/operator/aggregation/replaceRoot/"><code>$replaceRoot</code></a> does exactly that. Note that the type of a <code>newRoot</code> must be an object.</p>
+
+<h3 id="to-conclude">To conclude</h3>
+
+<p>That was it.
+The Entity-Component System is much more powerful, but also more sophisticated.
+However, even by applying simple parts of it we can model our system much
+better.</p>
+
+<p>I highly recommend reading the following series of articles on the ECS: <a href="http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/">Entity Systems are the future of MMOG development</a>. The author is talking about game development, but the concept is applicable in other areas as well.</p>
+              </div>
+
+              <div>
+                
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Better%20Software%20with%20Entity%20Systems&amp;url=https%3a%2f%2fsteamlayers.com%2fbetter-software-with-entity-systems%2f&amp;via=steamlayers" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.44 4.83c-.8.37-1.5.38-2.22.02.93-.56.98-.96 1.32-2.02-.88.52-1.86.9-2.9 1.1-.82-.88-2-1.43-3.3-1.43-2.5 0-4.55 2.04-4.55 4.54 0 .36.03.7.1 1.04-3.77-.2-7.12-2-9.36-4.75-.4.67-.6 1.45-.6 2.3 0 1.56.8 2.95 2 3.77-.74-.03-1.44-.23-2.05-.57v.06c0 2.2 1.56 4.03 3.64 4.44-.67.2-1.37.2-2.06.08.58 1.8 2.26 3.12 4.25 3.16C5.78 18.1 3.37 18.74 1 18.46c2 1.3 4.4 2.04 6.97 2.04 8.35 0 12.92-6.92 12.92-12.93 0-.2 0-.4-.02-.6.9-.63 1.96-1.22 2.56-2.14z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https://steamlayers.com/better-software-with-entity-systems/" target="_blank" aria-label="" />
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=Better%20Software%20with%20Entity%20Systems&amp;body=Using%20Entity%20Systems%20for%20better%20system%20design%20and%20better%20software%20modeling%0a%0ahttps%3a%2f%2fsteamlayers.com%2fbetter-software-with-entity-systems%2f" target="_self" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 4H2C.9 4 0 4.9 0 6v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7.25 14.43l-3.5 2c-.08.05-.17.07-.25.07-.17 0-.34-.1-.43-.25-.14-.24-.06-.55.18-.68l3.5-2c.24-.14.55-.06.68.18.14.24.06.55-.18.68zm4.75.07c-.1 0-.2-.03-.27-.08l-8.5-5.5c-.23-.15-.3-.46-.15-.7.15-.22.46-.3.7-.14L12 13.4l8.23-5.32c.23-.15.54-.08.7.15.14.23.07.54-.16.7l-8.5 5.5c-.08.04-.17.07-.27.07zm8.93 1.75c-.1.16-.26.25-.43.25-.08 0-.17-.02-.25-.07l-3.5-2c-.24-.13-.32-.44-.18-.68s.44-.32.68-.18l3.5 2c.24.13.32.44.18.68z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2fsteamlayers.com%2fbetter-software-with-entity-systems%2f&amp;title=Better%20Software%20with%20Entity%20Systems" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M24 11.5c0-1.65-1.35-3-3-3-.96 0-1.86.48-2.42 1.24-1.64-1-3.75-1.64-6.07-1.72.08-1.1.4-3.05 1.52-3.7.72-.4 1.73-.24 3 .5C17.2 6.3 18.46 7.5 20 7.5c1.65 0 3-1.35 3-3s-1.35-3-3-3c-1.38 0-2.54.94-2.88 2.22-1.43-.72-2.64-.8-3.6-.25-1.64.94-1.95 3.47-2 4.55-2.33.08-4.45.7-6.1 1.72C4.86 8.98 3.96 8.5 3 8.5c-1.65 0-3 1.35-3 3 0 1.32.84 2.44 2.05 2.84-.03.22-.05.44-.05.66 0 3.86 4.5 7 10 7s10-3.14 10-7c0-.22-.02-.44-.05-.66 1.2-.4 2.05-1.54 2.05-2.84zM2.3 13.37C1.5 13.07 1 12.35 1 11.5c0-1.1.9-2 2-2 .64 0 1.22.32 1.6.82-1.1.85-1.92 1.9-2.3 3.05zm3.7.13c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9.8 4.8c-1.08.63-2.42.96-3.8.96-1.4 0-2.74-.34-3.8-.95-.24-.13-.32-.44-.2-.68.15-.24.46-.32.7-.18 1.83 1.06 4.76 1.06 6.6 0 .23-.13.53-.05.67.2.14.23.06.54-.18.67zm.2-2.8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm5.7-2.13c-.38-1.16-1.2-2.2-2.3-3.05.38-.5.97-.82 1.6-.82 1.1 0 2 .9 2 2 0 .84-.53 1.57-1.3 1.87z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fsteamlayers.com%2fbetter-software-with-entity-systems%2f&amp;t=Better%20Software%20with%20Entity%20Systems" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><path fill-rule="evenodd" d="M60.94 82.314L17 0h20.08l25.85 52.093c.397.927.86 1.888 1.39 2.883.53.994.995 2.02 1.393 3.08.265.4.463.764.596 1.095.13.334.262.63.395.898.662 1.325 1.26 2.618 1.79 3.877.53 1.26.993 2.42 1.39 3.48 1.06-2.254 2.22-4.673 3.48-7.258 1.26-2.585 2.552-5.27 3.877-8.052L103.49 0h18.69L77.84 83.308v53.087h-16.9v-54.08z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+
+              </div>
+            </div>
+        </div>
+
+    </div>
+    
+
+</div>
+
+
+
+
+
+    <div id="bottom" class="bg-img">
+
+    
+    <div class="bg-overlay">
+
+        
+        <div class="container">
+
+
+<link href="//cdn-images.mailchimp.com/embedcode/horizontal-slim-10_7.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+input#mc-embedded-subscribe.button {
+  font-family:Roboto, Arial, sans-serif;
+  color:#FFF !important;
+  font-size:16px;
+  line-height:140%;
+  text-align:left;
+  font-weight:400;
+  white-space:nowrap;
+  background-color:#ff7469;
+  border:0px;
+  outline:none !important;
+  border-radius:3px;
+  -webkit-transition:color .2s ease, background-color .2s ease, background .2s ease;
+  transition:color .2s ease, background-color .2s ease, background .2s ease;
+}
+input#mc-embedded-subscribe.button:hover {
+  background-color:#f56357; 
+}
+</style>
+<div id="mc_embed_signup">
+<form action="//steamlayers.us15.list-manage.com/subscribe/post?u=8fe1b500654ca902aa3063a55&amp;id=cf49c86e25" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+  <h3 for="mce-EMAIL">Subscribe to our mailing list</h3>
+  <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Email address" required>
+    
+    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_8fe1b500654ca902aa3063a55_cf49c86e25" tabindex="-1" value=""></div>
+    <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+    </div>
+</form>
+</div>
+
+
+
+
+        </div>
+        
+
+    </div>
+    
+
+    <div class="bg-img-base"></div> 
+
+</div>
+
+
+
+
+    <footer id="footer">
+
+    
+    <div class="container">
+
+        <p class="copyright-txt">&copy; 2017 Copyrights by <a href="https://steamlayers.com">Steam Layers</a> - All rights reserved.</p>
+
+        
+        
+        
+        
+        
+
+    </div>
+    
+
+</footer>
+
+
+
+  </div>
+
+  <script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="js/jquery-migrate-1.2.1.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/jquery.easing.min.js"></script>
+<script type="text/javascript" src="js/smoothscroll.js"></script>
+<script type="text/javascript" src="js/response.min.js"></script>
+<script type="text/javascript" src="js/jquery.placeholder.min.js"></script>
+<script type="text/javascript" src="js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="js/waypoints.min.js"></script>
+<script type="text/javascript" src="js/slick.min.js"></script>
+<script type="text/javascript" src="js/jquery.fancybox.pack.js"></script>
+<script type="text/javascript" src="js/jquery.fancybox-media.js"></script>
+<script type="text/javascript" src="js/jquery.counterup.min.js"></script>
+<script type="text/javascript" src="js/script.js"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-93816802-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+
+
+
+</body>
+</html>
+
